@@ -12,6 +12,7 @@ public class Book {
     private String author;
     @Column(name = "publication_year")
     private int publicationYear;
+    @Column(nullable = false, unique = true)
     private String isbn;
 
     public Book() {}
