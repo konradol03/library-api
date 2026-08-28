@@ -3,14 +3,18 @@ package pl.konradoldakowski.libraryapi;
 
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
@@ -61,6 +65,43 @@ public class BookControllerTest {
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isEmpty())
                 .andExpect(jsonPath("$.length()").value(0));
+    }
+    @Test
+    public void shouldCreateBook() throws Exception {
+        Book book = createBook();
+        when(bookService.createBook(any(Book.class))).thenReturn(book);
+        mockMvc.perform(post("/books")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "title": "Harry Potter",
+                                "author": "J.K. Rowling",
+                                "publicationYear": 2001,
+                                "isbn": "978-1234567890"
+                            }
+                            """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(book.getId()))
+                .andExpect(jsonPath("$.title").value(book.getTitle()))
+                .andExpect(jsonPath("$.author").value(book.getAuthor()))
+                .andExpect(jsonPath("$.publicationYear").value(book.getPublicationYear()))
+                .andExpect(jsonPath("$.isbn").value(book.getIsbn()));
+    }
+    @Test
+    public void shouldReturnConflictWhenBookAlreadyExists() throws Exception {
+        Book book = createBook();
+        when(bookService.createBook(any(Book.class))).thenThrow(new BookAlreadyExistsException("Book with id "+book.getId()+" already exists"));
+
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                      {
+                        "title": "Harry Potter",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 2001,
+                        "isbn": "978-1234567890"
+                      }
+                        """))
+                .andExpect(status().isConflict());
     }
     private static @NonNull Book createBook() {
         Book book = new Book();

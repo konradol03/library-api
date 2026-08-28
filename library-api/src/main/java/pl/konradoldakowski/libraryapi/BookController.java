@@ -1,11 +1,11 @@
 package pl.konradoldakowski.libraryapi;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -23,5 +23,11 @@ public class BookController {
     @GetMapping
     public ResponseEntity<List<Book>> getAllBooks(){
         return ResponseEntity.ok(bookService.getAllBooks());
+    }
+    @PostMapping
+    public ResponseEntity<Book> createBook(@RequestBody Book book){
+        Book createdBook = bookService.createBook(book);
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(book.getId()).toUri();
+        return ResponseEntity.created(location).body(createdBook);
     }
 }
