@@ -17,11 +17,11 @@ public class BookService {
         this.bookRepository = bookRepository;
     }
 
-    public void createBook(Book book) {
+    public Book createBook(Book book) {
         if(bookRepository.existsByIsbn(book.getIsbn())) {
             throw new BookAlreadyExistsException("Book with ISBN already exists!");
         }
-        bookRepository.save(book);
+        return bookRepository.save(book);
     }
     public Book getBookById(Long id) {
         return bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException("Book with Id: " + id + " not found!"));
