@@ -13,8 +13,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.doThrow;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
@@ -102,6 +102,16 @@ public class BookControllerTest {
                       }
                         """))
                 .andExpect(status().isConflict());
+    }
+    @Test
+    public void shouldDeleteBookIfExists() throws Exception {
+        mockMvc.perform(delete("/books/{id}",1)).andExpect(status().isNoContent());
+    }
+    @Test
+    public void shouldReturnNotFoundWhenDeleteBookIsNotFound() throws Exception {
+        Long id = 999L;
+        doThrow(new  BookNotFoundException("Book with id "+id+" not found")).when(bookService).deleteBook(id);
+        mockMvc.perform(delete("/books/{id}",id)).andExpect(status().isNotFound());
     }
     private static @NonNull Book createBook() {
         Book book = new Book();

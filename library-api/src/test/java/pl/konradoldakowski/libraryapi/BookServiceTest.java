@@ -62,6 +62,23 @@ public class BookServiceTest {
         BookService bookService = new BookService(bookRepository);
         assertEquals(books, bookService.getAllBooks());
     }
+    @Test
+    public void shouldDeleteBookWhenBookExists() {
+        Book book = createBook();
+        BookRepository bookRepository = mock(BookRepository.class);
+        when(bookRepository.existsById(book.getId())).thenReturn(true);
+        BookService bookService = new BookService(bookRepository);
+        bookService.deleteBook(book.getId());
+        verify(bookRepository, times(1)).deleteById(book.getId());
+    }
+    @Test
+    public void shouldThrowExceptionWhenBookToDeleteDoesNotExist() {
+        Book book = createBook();
+        BookRepository bookRepository = mock(BookRepository.class);
+        when(bookRepository.existsById(book.getId())).thenReturn(false);
+        BookService bookService = new BookService(bookRepository);
+        Assertions.assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(book.getId()));
+    }
 
     private static @NonNull Book createBook() {
         Book book = new Book();

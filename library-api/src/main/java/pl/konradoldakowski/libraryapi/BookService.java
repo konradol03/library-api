@@ -30,5 +30,11 @@ public class BookService {
         Iterable<Book> allBooks = bookRepository.findAll();
         return StreamSupport.stream(allBooks.spliterator(), false).toList();
     }
+    public void deleteBook(Long id) {
+        if(!bookRepository.existsById(id)) {
+            throw new BookNotFoundException("Book with Id: "+id+" not found!");
+        }
+        bookRepository.deleteById(id);
+    }
 
 }
