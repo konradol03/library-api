@@ -7,7 +7,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.List;
+
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.mockito.Mockito.when;
 
@@ -21,10 +25,42 @@ public class BookControllerTest {
     private BookService bookService;
 
     @Test
-    void shouldReturnBookWhenBookExists() throws Exception {
+    public void shouldReturnBookWhenBookExists() throws Exception {
         Book book = createBook();
         when(bookService.getBookById(book.getId())).thenReturn(book);
-        mockMvc.perform(get("/books/"+book.getId())).andExpect(status().isOk());
+        mockMvc.perform(get("/books/"+book.getId())).
+                andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(book.getId()))
+                .andExpect(jsonPath("$.title").value(book.getTitle()))
+                .andExpect(jsonPath("$.author").value(book.getAuthor()))
+                .andExpect(jsonPath("$.publicationYear").value(book.getPublicationYear()))
+                .andExpect(jsonPath("$.isbn").value(book.getIsbn()));
+    }
+    @Test
+    public void shouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
+        Long id = 999L;
+        when(bookService.getBookById(id)).thenThrow(new BookNotFoundException("Book with id "+id+" not found"));
+        mockMvc.perform(get("/books/{id}",id)).andExpect(status().isNotFound());
+    }
+    @Test
+    public void shouldReturnAllBooks() throws Exception {
+        List<Book> books = List.of(createBook(), createBook(), createBook(), createBook());
+
+        when(bookService.getAllBooks()).thenReturn(books);
+        mockMvc.perform(get("/books")).andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isNotEmpty())
+                .andExpect(jsonPath("$.length()").value(books.size()))
+                .andExpect(jsonPath("$[0].id").value(books.get(0).getId()))
+                .andExpect(jsonPath("$[0].title").value(books.get(0).getTitle()));
+    }
+    @Test
+    public void shouldReturnEmptyListWhenNoBooksExist() throws Exception {
+        when(bookService.getAllBooks()).thenReturn(List.of());
+        mockMvc.perform(get("/books")).andExpect(status().isOk())
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$").isEmpty())
+                .andExpect(jsonPath("$.length()").value(0));
     }
     private static @NonNull Book createBook() {
         Book book = new Book();
