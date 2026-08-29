@@ -115,7 +115,7 @@ public class BookControllerTest {
     }
     private static @NonNull Book createBook() {
         Book book = new Book();
-        book.setId(1);
+        book.setId(1L);
         book.setTitle("Harry Potter");
         book.setAuthor("J.K. Rowling");
         book.setPublicationYear(2001);

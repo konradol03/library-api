@@ -40,7 +40,7 @@ public class BookService {
         Book updatedBook = bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException("Book with Id: " + id + " not found!"));
         Optional<Book> bookWithSameIsbn = bookRepository.findByIsbn(book.getIsbn());
 
-        if(bookWithSameIsbn.isPresent() && !(bookWithSameIsbn.get().getId() == id)) {
+        if(bookWithSameIsbn.isPresent() && !bookWithSameIsbn.get().getId().equals(id)) {
             throw new BookAlreadyExistsException("Book with ISBN already exists!");
         }
 
