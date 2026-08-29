@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class BookServiceTest {
@@ -21,7 +22,7 @@ public class BookServiceTest {
         when(bookRepository.existsByIsbn(book.getIsbn())).thenReturn(true);
         BookService bookService = new BookService(bookRepository);
 
-        Assertions.assertThrows(BookAlreadyExistsException.class, () -> bookService.createBook(book));
+        assertThrows(BookAlreadyExistsException.class, () -> bookService.createBook(book));
         verify(bookRepository, never()).save(book);
     }
 
@@ -51,7 +52,7 @@ public class BookServiceTest {
         BookRepository bookRepository = mock(BookRepository.class);
         when(bookRepository.findById(bookId)).thenReturn(Optional.empty());
         BookService bookService = new BookService(bookRepository);
-        Assertions.assertThrows(BookNotFoundException.class, () -> bookService.getBookById(bookId));
+        assertThrows(BookNotFoundException.class, () -> bookService.getBookById(bookId));
     }
 
     @Test
@@ -77,9 +78,78 @@ public class BookServiceTest {
         BookRepository bookRepository = mock(BookRepository.class);
         when(bookRepository.existsById(book.getId())).thenReturn(false);
         BookService bookService = new BookService(bookRepository);
-        Assertions.assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(book.getId()));
+        assertThrows(BookNotFoundException.class, () -> bookService.deleteBook(book.getId()));
     }
+    @Test
+    public void shouldUpdateBookWhenBookExists() {
+        Book existingBook = createBook();
+        Book newBookData = new Book();
 
+        newBookData.setTitle("Hobbit");
+        newBookData.setAuthor("Tolkien");
+        newBookData.setPublicationYear(2000);
+        newBookData.setIsbn("123456789");
+
+        BookRepository bookRepository = mock(BookRepository.class);
+
+        when(bookRepository.findById(1L)).thenReturn(Optional.of(existingBook));
+        when(bookRepository.findByIsbn("123456789")).thenReturn(Optional.empty());
+        when(bookRepository.save(existingBook)).thenReturn(existingBook);
+
+        BookService bookService = new BookService(bookRepository);
+        Book result = bookService.updateBook(existingBook.getId(), newBookData);
+
+        assertEquals("Hobbit", result.getTitle());
+        assertEquals("Tolkien", result.getAuthor());
+        assertEquals(2000, result.getPublicationYear());
+        assertEquals("123456789", result.getIsbn());
+
+        verify(bookRepository).save(existingBook);
+    }
+    @Test
+    public void shouldThrowExceptionWhenBookToUpdateDoesNotExist() {
+        Book bookToUpdate = createBook();
+        Long id = 3L;
+        BookRepository bookRepository = mock(BookRepository.class);
+        when(bookRepository.findById(id)).thenReturn(Optional.empty());
+        BookService bookService = new BookService(bookRepository);
+        assertThrows(BookNotFoundException.class, () -> bookService.updateBook(id,bookToUpdate));
+    }
+    @Test
+    public void shouldThrowExceptionWhenIsbnAlreadyExists() {
+        Long id = 5L;
+
+        Book existingBook = new Book();
+        existingBook.setId(id);
+        existingBook.setTitle("Hobbit");
+        existingBook.setAuthor("Tolkien");
+        existingBook.setPublicationYear(2000);
+        existingBook.setIsbn("123456789");
+
+        Book otherBook = new Book();
+        otherBook.setId(10L);
+        otherBook.setTitle("Harry Potter");
+        otherBook.setAuthor("J.K. Rowling");
+        otherBook.setPublicationYear(2001);
+        otherBook.setIsbn("987654321");
+
+        Book newBookData = new Book();
+        newBookData.setTitle("Hobbit 2");
+        newBookData.setAuthor("Tolkien");
+        newBookData.setPublicationYear(2001);
+        newBookData.setIsbn("987654321");
+
+        BookRepository bookRepository = mock(BookRepository.class);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(existingBook));
+
+        when(bookRepository.findByIsbn("987654321")).thenReturn(Optional.of(otherBook));
+
+        BookService bookService = new BookService(bookRepository);
+        assertThrows(BookAlreadyExistsException.class, ()->bookService.updateBook(id, newBookData)
+        );
+
+        verify(bookRepository, never()).save(any(Book.class));
+    }
     private static @NonNull Book createBook() {
         Book book = new Book();
         book.setId(1);
