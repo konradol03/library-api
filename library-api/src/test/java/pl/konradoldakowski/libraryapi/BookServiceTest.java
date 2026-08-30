@@ -150,6 +150,36 @@ public class BookServiceTest {
 
         verify(bookRepository, never()).save(any(Book.class));
     }
+    @Test
+    public void shouldUpdateBookWhenIsbnRemainsTheSame() {
+        Long id = 5L;
+        Book existingBook = new Book();
+        existingBook.setId(id);
+        existingBook.setTitle("Hobbit");
+        existingBook.setAuthor("Tolkien");
+        existingBook.setPublicationYear(2000);
+        existingBook.setIsbn("123456789");
+
+        Book newBookData = new Book();
+        newBookData.setTitle("Hobbit - wydanie nowe");
+        newBookData.setAuthor("Tolkien");
+        newBookData.setPublicationYear(2020);
+        newBookData.setIsbn("123456789");
+
+        BookRepository bookRepository = mock(BookRepository.class);
+        when(bookRepository.findById(id)).thenReturn(Optional.of(existingBook));
+        when(bookRepository.findByIsbn("123456789")).thenReturn(Optional.of(existingBook));
+        when(bookRepository.save(existingBook)).thenReturn(existingBook);
+
+        BookService bookService = new BookService(bookRepository);
+        Book result = bookService.updateBook(id, newBookData);
+        assertEquals("Hobbit - wydanie nowe", result.getTitle());
+        assertEquals("Tolkien", result.getAuthor());
+        assertEquals(2020, result.getPublicationYear());
+        assertEquals("123456789", result.getIsbn());
+
+        verify(bookRepository).save(existingBook);
+    }
     private static @NonNull Book createBook() {
         Book book = new Book();
         book.setId(1L);

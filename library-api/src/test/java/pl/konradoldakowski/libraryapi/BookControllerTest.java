@@ -113,6 +113,60 @@ public class BookControllerTest {
         doThrow(new  BookNotFoundException("Book with id "+id+" not found")).when(bookService).deleteBook(id);
         mockMvc.perform(delete("/books/{id}",id)).andExpect(status().isNotFound());
     }
+
+    @Test
+    public void shouldUpdateBook() throws Exception {
+        Book book = createBook();
+
+        when(bookService.updateBook(eq(1L), any(Book.class)))
+                .thenReturn(book);
+
+        mockMvc.perform(put("/books/{id}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                                "title": "Harry Potter",
+                                "author": "J.K. Rowling",
+                                "publicationYear": 2001,
+                                "isbn": "978-1234567890"
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value(book.getTitle()))
+                .andExpect(jsonPath("$.author").value(book.getAuthor()))
+                .andExpect(jsonPath("$.publicationYear").value(book.getPublicationYear()))
+                .andExpect(jsonPath("$.isbn").value(book.getIsbn()));
+    }
+    @Test
+    public void shouldReturnNotFoundWhenUpdateBookIsNotFound() throws Exception {
+        Long id = 1L;
+        when(bookService.updateBook(eq(1L), any(Book.class))).thenThrow(new BookNotFoundException("Book with id "+id+" not found"));
+        mockMvc.perform(put("/books/{id}", id).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                                "title": "Harry Potter",
+                                "author": "J.K. Rowling",
+                                "publicationYear": 2001,
+                                "isbn": "978-1234567890"
+                        }
+                        """)).andExpect(status().isNotFound());
+    }
+    @Test
+    public void shouldReturnConflictWhenUpdateBookIsConflict() throws Exception {
+        Book book = createBook();
+        when(bookService.updateBook(eq(1L), any(Book.class))).thenThrow(new BookAlreadyExistsException("Book with ISBN "+book.getIsbn()+" already exists"));
+
+        mockMvc.perform(put("/books/{id}", 1L).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                                "title": "Harry Potter",
+                                "author": "J.K. Rowling",
+                                "publicationYear": 2001,
+                                "isbn": "978-1234567890"
+                        }
+                        """)).andExpect(status().isConflict());
+    }
+
     private static @NonNull Book createBook() {
         Book book = new Book();
         book.setId(1L);
