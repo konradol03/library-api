@@ -1,4 +1,4 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.exception;
 
 public class BookAlreadyExistsException extends RuntimeException {
     public BookAlreadyExistsException(String message) {

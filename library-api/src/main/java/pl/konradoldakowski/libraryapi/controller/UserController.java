@@ -1,9 +1,11 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.controller;
 
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pl.konradoldakowski.libraryapi.service.UserService;
+import pl.konradoldakowski.libraryapi.entity.User;
 
 import java.net.URI;
 import java.util.List;

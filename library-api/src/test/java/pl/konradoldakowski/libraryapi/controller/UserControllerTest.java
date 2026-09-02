@@ -1,4 +1,4 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.controller;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -6,7 +6,10 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import pl.konradoldakowski.libraryapi.entity.User;
+import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
+import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
+import pl.konradoldakowski.libraryapi.service.UserService;
 
 import java.util.List;
 

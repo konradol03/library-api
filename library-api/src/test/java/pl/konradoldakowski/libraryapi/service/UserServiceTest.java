@@ -1,9 +1,10 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.service;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import pl.konradoldakowski.libraryapi.entity.User;
+import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
+import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
+import pl.konradoldakowski.libraryapi.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;

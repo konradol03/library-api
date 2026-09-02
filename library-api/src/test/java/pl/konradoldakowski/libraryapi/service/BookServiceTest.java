@@ -1,9 +1,13 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.service;
 
 
 import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import pl.konradoldakowski.libraryapi.entity.Book;
+import pl.konradoldakowski.libraryapi.exception.BookAlreadyExistsException;
+import pl.konradoldakowski.libraryapi.exception.BookNotFoundException;
+import pl.konradoldakowski.libraryapi.repository.BookRepository;
 
 import java.util.List;
 import java.util.Optional;

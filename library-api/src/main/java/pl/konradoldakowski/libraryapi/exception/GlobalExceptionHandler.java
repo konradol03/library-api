@@ -1,4 +1,4 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

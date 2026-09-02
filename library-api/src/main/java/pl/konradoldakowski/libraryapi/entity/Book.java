@@ -1,4 +1,4 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.entity;
 
 import jakarta.persistence.*;
 

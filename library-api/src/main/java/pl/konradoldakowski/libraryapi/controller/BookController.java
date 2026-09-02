@@ -1,9 +1,10 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pl.konradoldakowski.libraryapi.service.BookService;
+import pl.konradoldakowski.libraryapi.entity.Book;
 
 import java.net.URI;
 import java.util.List;

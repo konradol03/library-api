@@ -1,7 +1,11 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.service;
 
 
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.entity.User;
+import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
+import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
+import pl.konradoldakowski.libraryapi.repository.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +13,7 @@ import java.util.stream.StreamSupport;
 
 @Service
 public class UserService {
-    private final  UserRepository userRepository;
+    private final UserRepository userRepository;
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

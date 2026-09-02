@@ -1,6 +1,7 @@
-package pl.konradoldakowski.libraryapi;
+package pl.konradoldakowski.libraryapi.repository;
 
 import org.springframework.data.repository.CrudRepository;
+import pl.konradoldakowski.libraryapi.entity.User;
 
 import java.util.Optional;
 
