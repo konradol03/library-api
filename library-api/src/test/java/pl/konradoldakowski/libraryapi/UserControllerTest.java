@@ -147,6 +147,80 @@ public class UserControllerTest {
                         }
                         """)).andExpect(status().isConflict());
     }
+    @Test
+    public void shouldReturnBadRequestWhenFirstNameIsBlank() throws Exception {
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                "firstName": "",
+                "lastName": "Kowalski",
+                "email": "adam.kowalski@gmail.com",
+                "phoneNumber": "123456789"
+                }
+                """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenLastNameIsBlank() throws Exception {
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                "firstName": "Kamil",
+                "lastName": "",
+                "email": "adam.kowalski@gmail.com",
+                "phoneNumber": "123456789"
+                }
+                """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                "firstName": "Kamil",
+                "lastName": "Kowalski",
+                "email": "adam.kowal",
+                "phoneNumber": "123456789"
+                }
+                """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenEmailIsBlank() throws Exception {
+        mockMvc.perform(post("/users")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                    {
+                    "firstName": "Kamil",
+                    "lastName": "Kowalski",
+                    "email": "",
+                    "phoneNumber": "123456789"
+                    }
+                    """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenPhoneNumberIsInvalid() throws Exception {
+        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
+                {
+                "firstName": "Kamil",
+                "lastName": "Kowalski",
+                "email": "adam.kowalski@gmail.com",
+                "phoneNumber": "123"
+                }
+                """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestInPutMethod() throws Exception {
+        mockMvc.perform(put("/users/{id}",1L).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                        "firstName": "",
+                        "lastName": "Kowalski",
+                        "email": "adam.kowalski@gmail.com",
+                        "phoneNumber": "123456789"
+                        }
+                        """)).andExpect(status().isBadRequest());
+    }
     public User createUser(){
         User user = new User();
         user.setId(1L);

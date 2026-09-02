@@ -2,6 +2,9 @@ package pl.konradoldakowski.libraryapi;
 
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 @Entity
 public class User {
@@ -10,15 +13,18 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @NotBlank
     private String firstName;
 
-    @Column(nullable = false)
+    @NotBlank
     private String lastName;
 
     @Column(nullable = false, unique = true)
+    @Email
+    @NotBlank
     private String email;
 
+    @Pattern(regexp = "\\d{9}")
     private String phoneNumber;
 
     public User() {}
