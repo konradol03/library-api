@@ -1,17 +1,27 @@
 package pl.konradoldakowski.libraryapi.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 
 @Entity
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    @NotBlank
     @Column(nullable = false)
     private String title;
+
     private String author;
+
+    @Min(1000)
+    @Max(2026)
     @Column(name = "publication_year")
     private int publicationYear;
+
+    @NotBlank
+    @Pattern(regexp = "\\d{13}")
     @Column(nullable = false, unique = true)
     private String isbn;
 

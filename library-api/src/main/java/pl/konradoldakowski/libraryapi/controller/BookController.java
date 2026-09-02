@@ -1,5 +1,6 @@
 package pl.konradoldakowski.libraryapi.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -13,6 +14,7 @@ import java.util.List;
 @RequestMapping("/books")
 public class BookController {
     private final BookService bookService;
+
     public BookController(BookService bookService) {
         this.bookService = bookService;
     }
@@ -26,7 +28,7 @@ public class BookController {
         return ResponseEntity.ok(bookService.getAllBooks());
     }
     @PostMapping
-    public ResponseEntity<Book> createBook(@RequestBody Book book){
+    public ResponseEntity<Book> createBook(@Valid @RequestBody Book book){
         Book createdBook = bookService.createBook(book);
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(book.getId()).toUri();
         return ResponseEntity.created(location).body(createdBook);
@@ -37,7 +39,7 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
     @PutMapping("/{id}")
-    public ResponseEntity<Book> updateBook(@PathVariable Long id, @RequestBody Book book){
+    public ResponseEntity<Book> updateBook(@PathVariable Long id,@Valid @RequestBody Book book){
         return ResponseEntity.ok(bookService.updateBook(id, book));
     }
 }
