@@ -80,7 +80,7 @@ public class BookControllerTest {
                                 "title": "Harry Potter",
                                 "author": "J.K. Rowling",
                                 "publicationYear": 2001,
-                                "isbn": "978-1234567890"
+                                "isbn": "9781234567890"
                             }
                             """))
                 .andExpect(status().isCreated())
@@ -101,7 +101,7 @@ public class BookControllerTest {
                         "title": "Harry Potter",
                         "author": "J.K. Rowling",
                         "publicationYear": 2001,
-                        "isbn": "978-1234567890"
+                        "isbn": "9781234567890"
                       }
                         """))
                 .andExpect(status().isConflict());
@@ -131,7 +131,7 @@ public class BookControllerTest {
                                 "title": "Harry Potter",
                                 "author": "J.K. Rowling",
                                 "publicationYear": 2001,
-                                "isbn": "978-1234567890"
+                                "isbn": "9781234567890"
                             }
                             """))
                 .andExpect(status().isOk())
@@ -150,7 +150,7 @@ public class BookControllerTest {
                                 "title": "Harry Potter",
                                 "author": "J.K. Rowling",
                                 "publicationYear": 2001,
-                                "isbn": "978-1234567890"
+                                "isbn": "9781234567890"
                         }
                         """)).andExpect(status().isNotFound());
     }
@@ -165,11 +165,87 @@ public class BookControllerTest {
                                 "title": "Harry Potter",
                                 "author": "J.K. Rowling",
                                 "publicationYear": 2001,
-                                "isbn": "978-1234567890"
+                                "isbn": "9781234567890"
                         }
                         """)).andExpect(status().isConflict());
     }
-
+    @Test
+    public void shouldReturnBadRequestWhenTitleIsEmpty() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                      {
+                        "title": "",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 2001,
+                        "isbn": "9781234567890"
+                      }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenPublicationYearIsBefore1000() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                      {
+                        "title": "Harry Potter",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 999,
+                        "isbn": "9781234567890"
+                      }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenPublicationYearIsAfter2026() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                      {
+                        "title": "Harry Potter",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 2027,
+                        "isbn": "9781234567890"
+                      }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenIsbnIsBlank() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                      {
+                        "title": "Harry Potter",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 2001,
+                        "isbn": ""
+                      }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenIsbnIsLongerThan13() throws Exception {
+        mockMvc.perform(post("/books").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                      {
+                        "title": "Harry Potter",
+                        "author": "J.K. Rowling",
+                        "publicationYear": 2001,
+                        "isbn": "97878362832023441"
+                      }
+                        """))
+                .andExpect(status().isBadRequest());
+    }
+    @Test
+    public void shouldReturnBadRequestWhenTitleIsBlankInPUTMethod() throws Exception {
+        mockMvc.perform(put("/books/{id}", 1L).contentType(MediaType.APPLICATION_JSON)
+                .content("""
+                        {
+                                "title": "",
+                                "author": "J.K. Rowling",
+                                "publicationYear": 2001,
+                                "isbn": "9781234567890"
+                        }
+                        """)).andExpect(status().isBadRequest());
+    }
     private static @NonNull Book createBook() {
         Book book = new Book();
         book.setId(1L);
