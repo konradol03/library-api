@@ -30,7 +30,7 @@ public class BookController {
     @PostMapping
     public ResponseEntity<Book> createBook(@Valid @RequestBody Book book){
         Book createdBook = bookService.createBook(book);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(book.getId()).toUri();
+        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdBook.getId()).toUri();
         return ResponseEntity.created(location).body(createdBook);
     }
     @DeleteMapping("/{id}")
