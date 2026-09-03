@@ -47,7 +47,9 @@ public class BookControllerTest {
     public void shouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
         Long id = 999L;
         when(bookService.getBookById(id)).thenThrow(new BookNotFoundException("Book with id "+id+" not found"));
-        mockMvc.perform(get("/books/{id}",id)).andExpect(status().isNotFound());
+        mockMvc.perform(get("/books/{id}",id)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.message").value("Book with id "+id+" not found"));
     }
     @Test
     public void shouldReturnAllBooks() throws Exception {
@@ -104,7 +106,9 @@ public class BookControllerTest {
                         "isbn": "9781234567890"
                       }
                         """))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Book with id "+book.getId()+" already exists"));
     }
     @Test
     public void shouldDeleteBookIfExists() throws Exception {
@@ -152,7 +156,9 @@ public class BookControllerTest {
                                 "publicationYear": 2001,
                                 "isbn": "9781234567890"
                         }
-                        """)).andExpect(status().isNotFound());
+                        """)).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("Book with id "+id+" not found"));
     }
     @Test
     public void shouldReturnConflictWhenUpdateBookIsConflict() throws Exception {
@@ -167,7 +173,9 @@ public class BookControllerTest {
                                 "publicationYear": 2001,
                                 "isbn": "9781234567890"
                         }
-                        """)).andExpect(status().isConflict());
+                        """)).andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("Book with ISBN "+book.getIsbn()+" already exists"));
     }
     @Test
     public void shouldReturnBadRequestWhenTitleIsEmpty() throws Exception {
@@ -180,7 +188,11 @@ public class BookControllerTest {
                         "isbn": "9781234567890"
                       }
                         """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.title").value("must not be blank"));
+
     }
     @Test
     public void shouldReturnBadRequestWhenPublicationYearIsBefore1000() throws Exception {

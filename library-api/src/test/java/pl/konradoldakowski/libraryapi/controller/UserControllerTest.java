@@ -61,7 +61,9 @@ public class UserControllerTest {
     public void shouldThrowExceptionWhenUserDoesNotExist() throws Exception {
         User user = createUser();
         when(userService.getUserById(user.getId())).thenThrow(new UserNotFoundException("User with given ID not found"));
-        mockMvc.perform(get("/users/{id}", user.getId())).andExpect(status().isNotFound());
+        mockMvc.perform(get("/users/{id}", user.getId())).andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.message").value("User with given ID not found"));
     }
     @Test
     public void shouldCreateUser() throws Exception {
@@ -94,7 +96,9 @@ public class UserControllerTest {
                 "phoneNumber": "123456789"
                 }
                 """))
-                .andExpect(status().isConflict());
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.message").value("User with given email already exists"));
     }
     @Test
     public void shouldDeleteUserIfExists() throws Exception {
@@ -160,7 +164,10 @@ public class UserControllerTest {
                 "phoneNumber": "123456789"
                 }
                 """))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Validation failed"))
+                .andExpect(jsonPath("$.errors.firstName").value("must not be blank"));
     }
     @Test
     public void shouldReturnBadRequestWhenLastNameIsBlank() throws Exception {

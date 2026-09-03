@@ -40,7 +40,7 @@ public class GlobalExceptionHandler {
         for(FieldError error : exception.getBindingResult().getFieldErrors()){
             errors.put(error.getField(), error.getDefaultMessage());
         }
-        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), exception.getMessage(), errors);
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "Validation failed", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
     }
 }
