@@ -48,4 +48,14 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), exception.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
+    @ExceptionHandler(LoanNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleLoanNotFoundException(LoanNotFoundException exception){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND.value(), exception.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponse);
+    }
+    @ExceptionHandler(BookAlreadyReturnedException.class)
+    public ResponseEntity<ErrorResponse> handleBookAlreadyReturnedException(BookAlreadyReturnedException exception){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), exception.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
 }
