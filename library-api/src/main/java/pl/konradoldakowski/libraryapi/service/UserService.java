@@ -2,6 +2,7 @@ package pl.konradoldakowski.libraryapi.service;
 
 
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
@@ -24,12 +25,15 @@ public class UserService {
         }
         return userRepository.save(user);
     }
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+    public UserResponse getUserById(Long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
+        return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNumber(), user.getRole());
     }
-    public List<User> getAllUsers() {
+    public List<UserResponse> getAllUsers() {
         Iterable<User> all = userRepository.findAll();
-        return StreamSupport.stream(all.spliterator(), false).toList();
+        return StreamSupport.stream(all.spliterator(), false).map(user -> {
+           return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNumber(), user.getRole());
+        }).toList();
     }
     public void deleteUserById(Long id) {
         if(!userRepository.existsById(id)) {

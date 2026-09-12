@@ -1,6 +1,8 @@
 package pl.konradoldakowski.libraryapi.service;
 
 import org.junit.jupiter.api.Test;
+import pl.konradoldakowski.libraryapi.dto.UserResponse;
+import pl.konradoldakowski.libraryapi.entity.Role;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
@@ -41,7 +43,13 @@ public class UserServiceTest {
         UserRepository userRepository = mock(UserRepository.class);
         when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         UserService userService = new UserService(userRepository);
-        assertEquals(user, userService.getUserById(user.getId()));
+        UserResponse result = userService.getUserById(user.getId());
+        assertEquals(user.getId(), result.getId());
+        assertEquals(user.getFirstName(), result.getFirstName());
+        assertEquals(user.getLastName(), result.getLastName());
+        assertEquals(user.getEmail(), result.getEmail());
+        assertEquals(user.getPhoneNumber(), result.getPhoneNumber());
+        assertEquals(user.getRole(), result.getRole());
     }
     @Test
     public void shouldThrowErrorWhenUserWithIdDoesNotExist(){
@@ -53,11 +61,21 @@ public class UserServiceTest {
     }
     @Test
     public void shouldReturnListOfUsers() {
-        List<User> users = List.of(new User(), new User(), new User(), new User());
+        List<User> users = List.of(createUser(), createUser(), createUser(), createUser());
         UserRepository userRepository = mock(UserRepository.class);
         when(userRepository.findAll()).thenReturn(users);
         UserService userService = new UserService(userRepository);
-        assertEquals(users, userService.getAllUsers());
+
+        List<UserResponse> result = userService.getAllUsers();
+
+        assertEquals(4, result.size());
+        assertEquals(users.get(0).getId(), result.get(0).getId());
+        assertEquals(users.get(0).getFirstName(), result.get(0).getFirstName());
+        assertEquals(users.get(0).getLastName(), result.get(0).getLastName());
+        assertEquals(users.get(0).getEmail(), result.get(0).getEmail());
+        assertEquals(users.get(0).getPhoneNumber(), result.get(0).getPhoneNumber());
+        assertEquals(users.get(0).getRole(), result.get(0).getRole());
+
         verify(userRepository, times(1)).findAll();
     }
     @Test
@@ -146,6 +164,7 @@ public class UserServiceTest {
         user.setLastName("Kowalski");
         user.setEmail("adam.kowalski@gmail.com");
         user.setPhoneNumber("123456789");
+        user.setRole(Role.ADMIN);
         return user;
     }
 }

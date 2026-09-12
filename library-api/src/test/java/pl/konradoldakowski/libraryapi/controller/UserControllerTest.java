@@ -6,6 +6,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.konradoldakowski.libraryapi.dto.UserResponse;
+import pl.konradoldakowski.libraryapi.entity.Role;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
@@ -31,19 +33,24 @@ public class UserControllerTest {
     @Test
     public void shouldReturnUserByIdWhenExists() throws Exception {
         User user = createUser();
-        when(userService.getUserById(user.getId())).thenReturn(user);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNumber(), user.getRole());
+        when(userService.getUserById(user.getId())).thenReturn(userResponse);
         mockMvc.perform(get("/users/{id}", user.getId()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(user.getId()))
                 .andExpect(jsonPath("$.firstName").value(user.getFirstName()))
                 .andExpect(jsonPath("$.lastName").value(user.getLastName()))
                 .andExpect(jsonPath("$.email").value(user.getEmail()))
-                .andExpect(jsonPath("$.phoneNumber").value(user.getPhoneNumber()));
+                .andExpect(jsonPath("$.phoneNumber").value(user.getPhoneNumber()))
+                .andExpect(jsonPath("$.role").value(user.getRole().name()));
     }
     @Test
     public void shouldReturnListOfUsers() throws Exception {
         List<User> users = List.of(createUser(), createUser(), createUser(), createUser());
-        when(userService.getAllUsers()).thenReturn(users);
+        List<UserResponse> userResponses = users.stream().map(user -> {
+            return new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNumber(), user.getRole());
+        }).toList();
+        when(userService.getAllUsers()).thenReturn(userResponses);
         mockMvc.perform(get("/users")).andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -238,6 +245,7 @@ public class UserControllerTest {
         user.setLastName("Kowalski");
         user.setEmail("adam.kowalski@gmail.com");
         user.setPhoneNumber("123456789");
+        user.setRole(Role.USER);
         return user;
     }
 }
