@@ -27,6 +27,10 @@ public class User {
     @Pattern(regexp = "\\d{9}")
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
     public User() {}
 
     public Long getId() {
