@@ -73,41 +73,6 @@ public class UserControllerTest {
                 .andExpect(jsonPath("$.message").value("User with given ID not found"));
     }
     @Test
-    public void shouldCreateUser() throws Exception {
-        User user = createUser();
-        when(userService.addUser(any(User.class))).thenReturn(user);
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "Adam",
-                "lastName": "Kowalski",
-                "email": "adam.kowalski@gmail.com",
-                "phoneNumber": "123456789"
-                }
-                """))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(user.getId()))
-                .andExpect(jsonPath("$.firstName").value(user.getFirstName()))
-                .andExpect(jsonPath("$.lastName").value(user.getLastName()))
-                .andExpect(jsonPath("$.email").value(user.getEmail()))
-                .andExpect(jsonPath("$.phoneNumber").value(user.getPhoneNumber()));
-
-    }
-    @Test
-    public void shouldThrowExceptionWhenUserWithGivenEmailAlreadyExists() throws Exception {
-        when(userService.addUser(any(User.class))).thenThrow(new EmailAlreadyInUseException("User with given email already exists"));
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "Adam",
-                "lastName": "Kowalski",
-                "email": "adam.kowalski@gmail.com",
-                "phoneNumber": "123456789"
-                }
-                """))
-                .andExpect(status().isConflict())
-                .andExpect(jsonPath("$.status").value(409))
-                .andExpect(jsonPath("$.message").value("User with given email already exists"));
-    }
-    @Test
     public void shouldDeleteUserIfExists() throws Exception {
         mockMvc.perform(delete("/users/{id}",1L)).andExpect(status().isNoContent());
         verify(userService).deleteUserById(1L);
@@ -160,71 +125,6 @@ public class UserControllerTest {
                         "phoneNumber": "123456789"
                         }
                         """)).andExpect(status().isConflict());
-    }
-    @Test
-    public void shouldReturnBadRequestWhenFirstNameIsBlank() throws Exception {
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "",
-                "lastName": "Kowalski",
-                "email": "adam.kowalski@gmail.com",
-                "phoneNumber": "123456789"
-                }
-                """))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value(400))
-                .andExpect(jsonPath("$.message").value("Validation failed"))
-                .andExpect(jsonPath("$.errors.firstName").value("must not be blank"));
-    }
-    @Test
-    public void shouldReturnBadRequestWhenLastNameIsBlank() throws Exception {
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "Kamil",
-                "lastName": "",
-                "email": "adam.kowalski@gmail.com",
-                "phoneNumber": "123456789"
-                }
-                """))
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-    public void shouldReturnBadRequestWhenEmailIsInvalid() throws Exception {
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "Kamil",
-                "lastName": "Kowalski",
-                "email": "adam.kowal",
-                "phoneNumber": "123456789"
-                }
-                """))
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-    public void shouldReturnBadRequestWhenEmailIsBlank() throws Exception {
-        mockMvc.perform(post("/users")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                    {
-                    "firstName": "Kamil",
-                    "lastName": "Kowalski",
-                    "email": "",
-                    "phoneNumber": "123456789"
-                    }
-                    """))
-                .andExpect(status().isBadRequest());
-    }
-    @Test
-    public void shouldReturnBadRequestWhenPhoneNumberIsInvalid() throws Exception {
-        mockMvc.perform(post("/users").contentType(MediaType.APPLICATION_JSON).content("""
-                {
-                "firstName": "Kamil",
-                "lastName": "Kowalski",
-                "email": "adam.kowalski@gmail.com",
-                "phoneNumber": "123"
-                }
-                """))
-                .andExpect(status().isBadRequest());
     }
     @Test
     public void shouldReturnBadRequestInPutMethod() throws Exception {

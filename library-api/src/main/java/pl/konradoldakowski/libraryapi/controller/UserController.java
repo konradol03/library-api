@@ -27,13 +27,6 @@ public class UserController {
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id){
         return ResponseEntity.ok(userService.getUserById(id));
     }
-    @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user){
-        User createdUser = userService.addUser(user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.getId()).toUri();
-        return ResponseEntity.created(location).body(createdUser);
-
-    }
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         userService.deleteUserById(id);
