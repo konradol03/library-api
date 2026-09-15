@@ -8,6 +8,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.konradoldakowski.libraryapi.dto.BookResponse;
 import pl.konradoldakowski.libraryapi.entity.Book;
 import pl.konradoldakowski.libraryapi.exception.BookAlreadyExistsException;
 import pl.konradoldakowski.libraryapi.exception.BookNotFoundException;
@@ -33,15 +34,16 @@ public class BookControllerTest {
 
     @Test
     public void shouldReturnBookWhenBookExists() throws Exception {
-        Book book = createBook();
-        when(bookService.getBookById(book.getId())).thenReturn(book);
-        mockMvc.perform(get("/books/"+book.getId())).
+        BookResponse bookResponse = createBookResponse();
+        when(bookService.getBookById(bookResponse.getId())).thenReturn(bookResponse);
+        mockMvc.perform(get("/books/"+1L)).
                 andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(book.getId()))
-                .andExpect(jsonPath("$.title").value(book.getTitle()))
-                .andExpect(jsonPath("$.author").value(book.getAuthor()))
-                .andExpect(jsonPath("$.publicationYear").value(book.getPublicationYear()))
-                .andExpect(jsonPath("$.isbn").value(book.getIsbn()));
+                .andExpect(jsonPath("$.id").value(bookResponse.getId()))
+                .andExpect(jsonPath("$.title").value(bookResponse.getTitle()))
+                .andExpect(jsonPath("$.author").value(bookResponse.getAuthor()))
+                .andExpect(jsonPath("$.publicationYear").value(bookResponse.getPublicationYear()))
+                .andExpect(jsonPath("$.isbn").value(bookResponse.getIsbn()))
+                .andExpect(jsonPath("$.available").value(bookResponse.isAvailable()));
     }
     @Test
     public void shouldReturnNotFoundWhenBookDoesNotExist() throws Exception {
@@ -53,7 +55,7 @@ public class BookControllerTest {
     }
     @Test
     public void shouldReturnAllBooks() throws Exception {
-        List<Book> books = List.of(createBook(), createBook(), createBook(), createBook());
+        List<BookResponse> books = List.of(createBookResponse(), createBookResponse(), createBookResponse(), createBookResponse());
 
         when(bookService.getAllBooks()).thenReturn(books);
         mockMvc.perform(get("/books")).andExpect(status().isOk())
@@ -257,6 +259,10 @@ public class BookControllerTest {
                                 "isbn": "9781234567890"
                         }
                         """)).andExpect(status().isBadRequest());
+    }
+    private static @NonNull BookResponse createBookResponse() {
+        BookResponse bookResponse = new BookResponse(1L, "Clean Code", "Robert C. Martin", 2008, "1234567890", true);
+        return bookResponse;
     }
     private static @NonNull Book createBook() {
         Book book = new Book();
