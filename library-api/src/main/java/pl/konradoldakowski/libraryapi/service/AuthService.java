@@ -1,7 +1,11 @@
 package pl.konradoldakowski.libraryapi.service;
 
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.dto.LoginRequest;
 import pl.konradoldakowski.libraryapi.dto.RegisterRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.Role;
@@ -16,9 +20,12 @@ public class AuthService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final AuthenticationManager authenticationManager;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.authenticationManager = authenticationManager;
     }
 
     public UserResponse registerUser(RegisterRequest request) {
@@ -29,5 +36,9 @@ public class AuthService {
         User createdUser = new User(request.getFirstName(), request.getLastName(), request.getEmail(), request.getPhoneNumber(), encodedPassword, Role.USER);
         userRepository.save(createdUser);
         return new UserResponse(createdUser.getId(), createdUser.getFirstName(), createdUser.getLastName(), createdUser.getEmail(), createdUser.getPhoneNumber(), createdUser.getRole());
+    }
+
+    public void loginUser(LoginRequest request){
+        Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
     }
 }
