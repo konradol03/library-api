@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import pl.konradoldakowski.libraryapi.dto.LoginRequest;
+import pl.konradoldakowski.libraryapi.dto.LoginResponse;
 import pl.konradoldakowski.libraryapi.dto.RegisterRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.service.AuthService;
@@ -30,8 +31,9 @@ public class AuthController {
         return ResponseEntity.created(location).body(userResponse);
     }
     @PostMapping("/login")
-    public ResponseEntity<Void> login(@Valid @RequestBody LoginRequest loginRequest) {
-        authService.loginUser(loginRequest);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
+        String jwt = authService.loginUser(loginRequest);
+        LoginResponse loginResponse = new LoginResponse(jwt);
+        return ResponseEntity.ok(loginResponse);
     }
 }
