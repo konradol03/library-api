@@ -7,6 +7,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.konradoldakowski.libraryapi.dto.RegisterRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
@@ -25,11 +26,15 @@ public class AuthServiceTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private AuthenticationManager authenticationManager;
+    @Mock
+    private JwtService jwtService;
     private AuthService authService;
 
     @BeforeEach
     public void setUp() {
-        authService = new AuthService(userRepository, passwordEncoder);
+        authService = new AuthService(userRepository, passwordEncoder,authenticationManager,jwtService);
     }
 
     @Test
