@@ -3,6 +3,7 @@ package pl.konradoldakowski.libraryapi.service;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pl.konradoldakowski.libraryapi.dto.LoginRequest;
@@ -22,10 +23,13 @@ public class AuthService {
 
     private final AuthenticationManager authenticationManager;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager) {
+    private final JwtService jwtService;
+
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
     }
 
     public UserResponse registerUser(RegisterRequest request) {
@@ -38,7 +42,9 @@ public class AuthService {
         return new UserResponse(createdUser.getId(), createdUser.getFirstName(), createdUser.getLastName(), createdUser.getEmail(), createdUser.getPhoneNumber(), createdUser.getRole());
     }
 
-    public void loginUser(LoginRequest request){
+    public String loginUser(LoginRequest request){
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword()));
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        return jwtService.generateToken(userDetails);
     }
 }
