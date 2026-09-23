@@ -47,4 +47,9 @@ public class UserController {
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,@Valid @RequestBody UpdateUserRequest user){
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody UpdateUserRequest request){
+        Long id = userDetails.getId();
+        return ResponseEntity.ok(userService.updateUser(id, request));
+    }
 }
