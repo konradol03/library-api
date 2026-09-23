@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.service.UserService;
 import pl.konradoldakowski.libraryapi.entity.User;
@@ -38,7 +39,7 @@ public class UserController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id,@Valid @RequestBody User user){
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,@Valid @RequestBody UpdateUserRequest user){
         return ResponseEntity.ok(userService.updateUser(id, user));
     }
 }

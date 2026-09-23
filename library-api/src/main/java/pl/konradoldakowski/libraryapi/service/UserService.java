@@ -2,6 +2,7 @@ package pl.konradoldakowski.libraryapi.service;
 
 
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
@@ -41,7 +42,7 @@ public class UserService {
         }
         userRepository.deleteById(id);
     }
-    public User updateUser(Long id, User user) {
+    public UserResponse updateUser(Long id, UpdateUserRequest user) {
         User userToUpdate = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found"));
         Optional<User> userByEmail = userRepository.findByEmail(user.getEmail());
         if(userByEmail.isPresent() && !userByEmail.get().getId().equals(id)) {
@@ -51,6 +52,7 @@ public class UserService {
         userToUpdate.setLastName(user.getLastName());
         userToUpdate.setEmail(user.getEmail());
         userToUpdate.setPhoneNumber(user.getPhoneNumber());
-        return userRepository.save(userToUpdate);
+        userRepository.save(userToUpdate);
+        return new UserResponse(userToUpdate.getId(), userToUpdate.getFirstName(), userToUpdate.getLastName(), userToUpdate.getEmail(), userToUpdate.getPhoneNumber(), userToUpdate.getRole());
     }
 }
