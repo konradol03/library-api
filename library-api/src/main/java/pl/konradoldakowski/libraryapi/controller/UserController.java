@@ -3,13 +3,13 @@ package pl.konradoldakowski.libraryapi.controller;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
+import pl.konradoldakowski.libraryapi.security.CustomUserDetails;
 import pl.konradoldakowski.libraryapi.service.UserService;
-import pl.konradoldakowski.libraryapi.entity.User;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -19,6 +19,11 @@ public class UserController {
 
     public UserController(UserService userService) {
         this.userService = userService;
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(userService.getUserByEmail(userDetails.getUsername()));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
