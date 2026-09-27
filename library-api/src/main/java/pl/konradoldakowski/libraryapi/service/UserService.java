@@ -1,11 +1,14 @@
 package pl.konradoldakowski.libraryapi.service;
 
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.dto.ChangePasswordRequest;
 import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
+import pl.konradoldakowski.libraryapi.exception.InvalidCurrentPasswordException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
 import pl.konradoldakowski.libraryapi.repository.UserRepository;
 
@@ -16,8 +19,10 @@ import java.util.stream.StreamSupport;
 @Service
 public class UserService {
     private final UserRepository userRepository;
-    public UserService(UserRepository userRepository) {
+    private final PasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public User addUser(User user) {
@@ -58,5 +63,13 @@ public class UserService {
         userToUpdate.setPhoneNumber(user.getPhoneNumber());
         userRepository.save(userToUpdate);
         return new UserResponse(userToUpdate.getId(), userToUpdate.getFirstName(), userToUpdate.getLastName(), userToUpdate.getEmail(), userToUpdate.getPhoneNumber(), userToUpdate.getRole());
+    }
+    public void changePassword(Long Id, ChangePasswordRequest changePasswordRequest) {
+        User user = userRepository.findById(Id).orElseThrow(() -> new UserNotFoundException("User with given ID not found"));
+        if(!passwordEncoder.matches(changePasswordRequest.getOldPassword(),user.getPassword())){
+            throw new InvalidCurrentPasswordException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(changePasswordRequest.getNewPassword()));
+        userRepository.save(user);
     }
 }

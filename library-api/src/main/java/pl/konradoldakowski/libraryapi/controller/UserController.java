@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import pl.konradoldakowski.libraryapi.dto.ChangePasswordRequest;
 import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.security.CustomUserDetails;
@@ -51,5 +52,10 @@ public class UserController {
     public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody UpdateUserRequest request){
         Long id = userDetails.getId();
         return ResponseEntity.ok(userService.updateUser(id, request));
+    }
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changeUserPassword(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody ChangePasswordRequest changePasswordRequest){
+        userService.changePassword(userDetails.getId(), changePasswordRequest);
+        return ResponseEntity.noContent().build();
     }
 }
