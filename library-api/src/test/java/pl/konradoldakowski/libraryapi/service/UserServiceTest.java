@@ -1,6 +1,8 @@
 package pl.konradoldakowski.libraryapi.service;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.Role;
 import pl.konradoldakowski.libraryapi.entity.User;
@@ -110,7 +112,7 @@ public class UserServiceTest {
         UserRepository userRepository = mock(UserRepository.class);
         when(userRepository.findById(user.getId())).thenReturn(Optional.empty());
         UserService userService = new UserService(userRepository);
-        assertThrows(UserNotFoundException.class, () -> userService.updateUser(5L, user));
+        assertThrows(UserNotFoundException.class, () -> userService.updateUser(5L, new UpdateUserRequest()));
     }
     @Test
     public void shouldThrowExceptionWhenUserWithGivenEmailAlreadyExists() {
@@ -133,12 +135,12 @@ public class UserServiceTest {
         when(userRepository.findByEmail(user1.getEmail())).thenReturn(Optional.of(user1));
         UserService userService = new UserService(userRepository);
 
-        assertThrows(EmailAlreadyInUseException.class, () -> userService.updateUser(user.getId(), user2));
+        assertThrows(EmailAlreadyInUseException.class, () -> userService.updateUser(user.getId(), new UpdateUserRequest()));
     }
     @Test
     public void shouldUpdateUserIfEverythingisFine() {
         User existingUser = createUser();
-        User newUserData = new User();
+        UpdateUserRequest newUserData = new UpdateUserRequest();
         newUserData.setFirstName("Konrad");
         newUserData.setLastName("Lewy");
         newUserData.setPhoneNumber("987654321");
@@ -149,14 +151,35 @@ public class UserServiceTest {
         when(userRepository.findByEmail("konrad@gmail.com")).thenReturn(Optional.empty());
         when(userRepository.save(existingUser)).thenReturn(existingUser);
         UserService userService = new UserService(userRepository);
-        User result = userService.updateUser(existingUser.getId(), newUserData);
+        UserResponse result = userService.updateUser(existingUser.getId(), newUserData);
 
         assertEquals("Konrad", result.getFirstName());
         assertEquals("Lewy", result.getLastName());
         assertEquals("987654321", result.getPhoneNumber());
         assertEquals("konrad@gmail.com", result.getEmail());
     }
-
+    @Test
+    public void shouldReturUserByEmailWhenExists() {
+        User user = createUser();
+        UserRepository userRepository = mock(UserRepository.class);
+        when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+        UserService userService = new UserService(userRepository);
+        UserResponse userByEmail = userService.getUserByEmail(user.getEmail());
+        assertEquals(user.getEmail(), userByEmail.getEmail());
+        assertEquals(user.getFirstName(), userByEmail.getFirstName());
+        assertEquals(user.getLastName(), userByEmail.getLastName());
+        assertEquals(user.getPhoneNumber(), userByEmail.getPhoneNumber());
+        assertEquals(user.getRole(), userByEmail.getRole());
+        verify(userRepository, times(1)).findByEmail(user.getEmail());
+    }
+    @Test
+    public void shouldThrowExceptionWhenUserWithGivenEmailDoesNotExist() {
+        String email = "missing@email.com";
+        UserRepository userRepository = mock(UserRepository.class);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        UserService userService = new UserService(userRepository);
+        Assertions.assertThrows(UserNotFoundException.class, () -> userService.getUserByEmail(email));
+    }
     public User createUser(){
         User user = new User();
         user.setId(1L);

@@ -1,16 +1,20 @@
 package pl.konradoldakowski.libraryapi.controller;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.Role;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
+import pl.konradoldakowski.libraryapi.security.CustomUserDetails;
 import pl.konradoldakowski.libraryapi.service.UserService;
 
 import java.util.List;
@@ -18,12 +22,16 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UserController.class)
 public class UserControllerTest {
+
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -85,7 +93,8 @@ public class UserControllerTest {
     @Test
     public void shouldUpdateUser() throws Exception {
         User user = createUser();
-        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(user);
+        UserResponse userResponse = new UserResponse(user.getId(), user.getFirstName(), user.getLastName(), user.getEmail(), user.getPhoneNumber(), user.getRole());
+        when(userService.updateUser(eq(1L), any(UpdateUserRequest.class))).thenReturn(userResponse);
         mockMvc.perform(put("/users/{id}",1L).contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -102,7 +111,7 @@ public class UserControllerTest {
     }
     @Test
     public void shouldThrowExceptionUserIsNotFoundWhenUserDoesNotExist() throws Exception {
-        when(userService.updateUser(eq(1L), any(User.class))).thenThrow(new UserNotFoundException("User with given ID not found"));
+        when(userService.updateUser(eq(1L), any(UpdateUserRequest.class))).thenThrow(new UserNotFoundException("User with given ID not found"));
         mockMvc.perform(put("/users/{id}",1L).contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
@@ -115,7 +124,7 @@ public class UserControllerTest {
     }
     @Test
     public void shouldThrowExceptionIfUserWithGivenEmailAlreadyExists() throws Exception {
-        when(userService.updateUser(eq(1L), any(User.class))).thenThrow(new EmailAlreadyInUseException("User with given email already exists"));
+        when(userService.updateUser(eq(1L), any(UpdateUserRequest.class))).thenThrow(new EmailAlreadyInUseException("User with given email already exists"));
         mockMvc.perform(put("/users/{id}",1L).contentType(MediaType.APPLICATION_JSON)
                 .content("""
                         {
