@@ -1,11 +1,13 @@
 package pl.konradoldakowski.libraryapi.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import pl.konradoldakowski.libraryapi.dto.ChangePasswordRequest;
+import pl.konradoldakowski.libraryapi.dto.ChangeRoleRequest;
 import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.security.CustomUserDetails;
@@ -57,5 +59,10 @@ public class UserController {
     public ResponseEntity<Void> changeUserPassword(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody ChangePasswordRequest changePasswordRequest){
         userService.changePassword(userDetails.getId(), changePasswordRequest);
         return ResponseEntity.noContent().build();
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<UserResponse> changeUserRole(@PathVariable Long id,@Valid @RequestBody ChangeRoleRequest changeRoleRequest){
+        return ResponseEntity.ok(userService.changeUserRole(id, changeRoleRequest));
     }
 }
