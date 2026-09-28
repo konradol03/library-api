@@ -1,15 +1,18 @@
 package pl.konradoldakowski.libraryapi.service;
 
+import com.jayway.jsonpath.internal.function.sequence.Last;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import pl.konradoldakowski.libraryapi.dto.ChangePasswordRequest;
+import pl.konradoldakowski.libraryapi.dto.ChangeRoleRequest;
 import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
 import pl.konradoldakowski.libraryapi.dto.UserResponse;
 import pl.konradoldakowski.libraryapi.entity.Role;
 import pl.konradoldakowski.libraryapi.entity.User;
 import pl.konradoldakowski.libraryapi.exception.EmailAlreadyInUseException;
 import pl.konradoldakowski.libraryapi.exception.InvalidCurrentPasswordException;
+import pl.konradoldakowski.libraryapi.exception.LastAdminException;
 import pl.konradoldakowski.libraryapi.exception.UserNotFoundException;
 import pl.konradoldakowski.libraryapi.repository.UserRepository;
 
@@ -231,6 +234,61 @@ public class UserServiceTest {
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
         Assertions.assertThrows(UserNotFoundException.class, () -> userService.changePassword(1L, new ChangePasswordRequest()));
         verify(userRepository, never()).save(any());
+    }
+    @Test
+    public void shouldChangeUserRoleFromUserToAdmin() {
+        User user = createUser();
+        user.setRole(Role.USER);
+
+        ChangeRoleRequest changeRoleRequest = new ChangeRoleRequest();
+        changeRoleRequest.setRole(Role.ADMIN);
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        UserResponse response = userService.changeUserRole(user.getId(), changeRoleRequest);
+
+        Assertions.assertEquals(Role.ADMIN, response.getRole());
+        verify(userRepository, times(1)).save(user);
+    }
+    @Test
+    public void shouldThrowExceptionWhenUserDoesNotExist() {
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        ChangeRoleRequest changeRoleRequest = new ChangeRoleRequest();
+        changeRoleRequest.setRole(Role.ADMIN);
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        Assertions.assertThrows(UserNotFoundException.class, () -> userService.changeUserRole(1L, changeRoleRequest));
+        verify(userRepository, never()).save(any());
+    }
+    @Test
+    public void shouldPreventRemovingLastAdmin() {
+        User user = createUser();
+        user.setRole(Role.ADMIN);
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        ChangeRoleRequest changeRoleRequest = new ChangeRoleRequest();
+        changeRoleRequest.setRole(Role.USER);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.countByRole(Role.ADMIN)).thenReturn(1L);
+        Assertions.assertThrows(LastAdminException.class, () -> userService.changeUserRole(1L, changeRoleRequest));
+        verify(userRepository, never()).save(any(User.class));
+    }
+    @Test
+    public void shouldAllowAdminToRemoveOwnRoleWhenOtherAdminsExist() {
+        User user = createUser();
+        user.setRole(Role.ADMIN);
+        UserRepository userRepository = mock(UserRepository.class);
+        PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
+        UserService userService = new UserService(userRepository, passwordEncoder);
+        ChangeRoleRequest changeRoleRequest = new ChangeRoleRequest();
+        changeRoleRequest.setRole(Role.USER);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.countByRole(Role.ADMIN)).thenReturn(2L);
+        UserResponse userResponse = userService.changeUserRole(1L, changeRoleRequest);
+        Assertions.assertEquals(Role.USER, userResponse.getRole());
     }
     public User createUser(){
         User user = new User();
