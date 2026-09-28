@@ -49,8 +49,9 @@ public class UserService {
         }).toList();
     }
     public void deleteUserById(Long id) {
-        if(!userRepository.existsById(id)) {
-            throw new UserNotFoundException("User with id " + id + " not found");
+        User user = userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with given id not found"));
+        if(user.getRole() ==  Role.ADMIN && userRepository.countByRole(Role.ADMIN) <= 1) {
+            throw new LastAdminException("Cannot delete last administrator");
         }
         userRepository.deleteById(id);
     }
