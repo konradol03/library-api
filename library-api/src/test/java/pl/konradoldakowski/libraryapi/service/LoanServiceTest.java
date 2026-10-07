@@ -3,6 +3,7 @@ package pl.konradoldakowski.libraryapi.service;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import pl.konradoldakowski.libraryapi.dto.CreateLoanRequest;
+import pl.konradoldakowski.libraryapi.dto.LoanResponse;
 import pl.konradoldakowski.libraryapi.entity.Book;
 import pl.konradoldakowski.libraryapi.entity.Loan;
 import pl.konradoldakowski.libraryapi.entity.User;
@@ -46,10 +47,10 @@ public class LoanServiceTest {
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
-        Loan loan1 = loanService.createLoan(request);
+        LoanResponse loan1 = loanService.createLoan(request);
 
-        assertEquals(request.getBookId(), loan1.getBook().getId());
-        assertEquals(request.getUserId(), loan1.getUser().getId());
+        assertEquals(request.getBookId(), loan1.getBookId());
+        assertEquals(request.getUserId(), loan1.getUserId());
         assertEquals(LocalDate.now(), loan1.getBorrowedAt());
         assertEquals(LocalDate.now().plusDays(4), loan1.getDueDate());
         assertNull(loan1.getReturnedAt());
@@ -119,8 +120,11 @@ public class LoanServiceTest {
         when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
 
-        Loan loanById = loanService.getLoanById(1L);
-        assertEquals(loan,loanById);
+        LoanResponse loanById = loanService.getLoanById(1L);
+        assertEquals(loan.getId(),loanById.getId());
+        assertEquals(loan.getReturnedAt(),loanById.getReturnedAt());
+        assertEquals(loan.getBook().getId(),loanById.getBookId());
+
     }
     @Test
     public void shouldThrowExceptionWhenLoanWithGivenIdIsNotFound() {
@@ -142,7 +146,8 @@ public class LoanServiceTest {
 
         when(loanRepository.findAll()).thenReturn(loans);
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
-        assertEquals(loans, loanService.getAllLoans());
+        List<LoanResponse> allLoans = loanService.getAllLoans();
+        assertEquals(loans.get(0).getId(),allLoans.get(0).getId());
     }
     @Test
     public void shouldSetReturnedDateWhenBookIsReturned() {
@@ -156,7 +161,7 @@ public class LoanServiceTest {
         when(loanRepository.save(loan)).thenReturn(loan);
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
 
-        Loan loan2 = loanService.returnBook(1L);
+        LoanResponse loan2 = loanService.returnBook(1L);
         assertEquals(LocalDate.now(),loan2.getReturnedAt());
     }
     @Test
@@ -193,8 +198,10 @@ public class LoanServiceTest {
         when(userRepository.existsById(1L)).thenReturn(true);
         when(loanRepository.findByUserId(1L)).thenReturn(loans);
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
-        List<Loan> loansByUserId = loanService.getLoansByUserId(1L);
-        assertEquals(loans, loansByUserId);
+        List<LoanResponse> loansByUserId = loanService.getLoansByUserId(1L);
+        assertEquals(loans.size(), loansByUserId.size());
+        assertEquals(loans.get(0).getBook().getId(),loansByUserId.get(0).getBookId());
+
     }
     @Test
     public void shouldThrowExceptionWhenUserDoesNotExist() {
