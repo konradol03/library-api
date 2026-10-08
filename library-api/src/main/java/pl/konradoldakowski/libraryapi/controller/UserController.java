@@ -1,13 +1,18 @@
 package pl.konradoldakowski.libraryapi.controller;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import pl.konradoldakowski.libraryapi.dto.ChangePasswordRequest;
+import pl.konradoldakowski.libraryapi.dto.ChangeRoleRequest;
+import pl.konradoldakowski.libraryapi.dto.UpdateUserRequest;
+import pl.konradoldakowski.libraryapi.dto.UserResponse;
+import pl.konradoldakowski.libraryapi.security.CustomUserDetails;
 import pl.konradoldakowski.libraryapi.service.UserService;
-import pl.konradoldakowski.libraryapi.entity.User;
 
-import java.net.URI;
 import java.util.List;
 
 @RestController
@@ -18,28 +23,46 @@ public class UserController {
     public UserController(UserService userService) {
         this.userService = userService;
     }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(userService.getUserByEmail(userDetails.getUsername()));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
-    public ResponseEntity<List<User>> getAllUsers(){
+    public ResponseEntity<List<UserResponse>> getAllUsers(){
         return ResponseEntity.ok(userService.getAllUsers());
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id){
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id){
         return ResponseEntity.ok(userService.getUserById(id));
     }
-    @PostMapping
-    public ResponseEntity<User> createUser(@Valid @RequestBody User user){
-        User createdUser = userService.addUser(user);
-        URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(createdUser.getId()).toUri();
-        return ResponseEntity.created(location).body(createdUser);
-
-    }
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id){
         userService.deleteUserById(id);
         return ResponseEntity.noContent().build();
     }
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<User> updateUser(@PathVariable Long id,@Valid @RequestBody User user){
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long id,@Valid @RequestBody UpdateUserRequest user){
         return ResponseEntity.ok(userService.updateUser(id, user));
+    }
+    @PutMapping("/me")
+    public ResponseEntity<UserResponse> updateMyProfile(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody UpdateUserRequest request){
+        Long id = userDetails.getId();
+        return ResponseEntity.ok(userService.updateUser(id, request));
+    }
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changeUserPassword(@AuthenticationPrincipal CustomUserDetails userDetails, @Valid @RequestBody ChangePasswordRequest changePasswordRequest){
+        userService.changePassword(userDetails.getId(), changePasswordRequest);
+        return ResponseEntity.noContent().build();
+    }
+    @PreAuthorize("hasRole('ADMIN')")
+    @PatchMapping("/{id}/role")
+    public ResponseEntity<UserResponse> changeUserRole(@PathVariable Long id,@Valid @RequestBody ChangeRoleRequest changeRoleRequest){
+        return ResponseEntity.ok(userService.changeUserRole(id, changeRoleRequest));
     }
 }

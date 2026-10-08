@@ -2,10 +2,12 @@ package pl.konradoldakowski.libraryapi.service;
 
 
 import org.springframework.stereotype.Service;
+import pl.konradoldakowski.libraryapi.dto.BookResponse;
 import pl.konradoldakowski.libraryapi.entity.Book;
 import pl.konradoldakowski.libraryapi.exception.BookAlreadyExistsException;
 import pl.konradoldakowski.libraryapi.exception.BookNotFoundException;
 import pl.konradoldakowski.libraryapi.repository.BookRepository;
+import pl.konradoldakowski.libraryapi.repository.LoanRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,9 +16,11 @@ import java.util.stream.StreamSupport;
 @Service
 public class BookService {
     private final BookRepository bookRepository;
+    private final LoanRepository loanRepository;
 
-    public BookService(BookRepository bookRepository) {
+    public BookService(BookRepository bookRepository, LoanRepository loanRepository) {
         this.bookRepository = bookRepository;
+        this.loanRepository = loanRepository;
     }
 
     public Book createBook(Book book) {
@@ -25,12 +29,13 @@ public class BookService {
         }
         return bookRepository.save(book);
     }
-    public Book getBookById(Long id) {
-        return bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException("Book with Id: " + id + " not found!"));
+    public BookResponse getBookById(Long id) {
+        Book book = bookRepository.findById(id).orElseThrow(() -> new BookNotFoundException("Book with Id: " + id + " not found!"));
+        return mapToBookResponse(book);
     }
-    public List<Book> getAllBooks() {
+    public List<BookResponse> getAllBooks() {
         Iterable<Book> allBooks = bookRepository.findAll();
-        return StreamSupport.stream(allBooks.spliterator(), false).toList();
+        return StreamSupport.stream(allBooks.spliterator(), false).map(this::mapToBookResponse).toList();
     }
     public void deleteBook(Long id) {
         if(!bookRepository.existsById(id)) {
@@ -52,5 +57,8 @@ public class BookService {
         updatedBook.setIsbn(book.getIsbn());
         return bookRepository.save(updatedBook);
     }
-
+    private BookResponse mapToBookResponse(Book book) {
+        boolean available = !loanRepository.existsByBookIdAndReturnedAtIsNull(book.getId());
+        return new BookResponse(book.getId(), book.getTitle(), book.getAuthor(), book.getPublicationYear(), book.getIsbn(), available);
+    }
 }

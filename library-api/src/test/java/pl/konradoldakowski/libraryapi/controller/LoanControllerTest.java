@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import pl.konradoldakowski.libraryapi.dto.CreateLoanRequest;
+import pl.konradoldakowski.libraryapi.dto.LoanResponse;
 import pl.konradoldakowski.libraryapi.entity.Book;
 import pl.konradoldakowski.libraryapi.entity.Loan;
 import pl.konradoldakowski.libraryapi.entity.User;
@@ -33,7 +34,7 @@ public class LoanControllerTest {
     @Test
     public void shouldCreateLoan() throws Exception {
         Loan loan = createLoan();
-        when(loanService.createLoan(any(CreateLoanRequest.class))).thenReturn(loan);
+        when(loanService.createLoan(any(CreateLoanRequest.class))).thenReturn(mapToLoanResponse(loan));
         mockMvc.perform(post("/loans").contentType(MediaType.APPLICATION_JSON).content("""
                 {
                 "userId": 1,
@@ -44,8 +45,8 @@ public class LoanControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", "http://localhost/loans/1"))
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.user.id").value(1))
-                .andExpect(jsonPath("$.book.id").value(1))
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.bookId").value(1))
                 .andExpect(jsonPath("$.borrowedAt").value(LocalDate.now().toString()));
 
     }
@@ -131,11 +132,11 @@ public class LoanControllerTest {
     @Test
     public void shouldReturnLoanWhenExists() throws Exception {
         Loan loan = createLoan();
-        when(loanService.getLoanById(1L)).thenReturn(loan);
+        when(loanService.getLoanById(1L)).thenReturn(mapToLoanResponse(loan));
         mockMvc.perform(get("/loans/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.user.id").value(1))
-                .andExpect(jsonPath("$.book.id").value(1))
+                .andExpect(jsonPath("$.userId").value(1))
+                .andExpect(jsonPath("$.bookId").value(1))
                 .andExpect(jsonPath("$.borrowedAt").value(LocalDate.now().toString()))
                 .andExpect(jsonPath("$.dueDate").value(LocalDate.now().plusDays(4).toString()))
                 .andExpect(jsonPath("$.returnedAt").isEmpty());
@@ -148,7 +149,8 @@ public class LoanControllerTest {
     @Test
     public void shouldReturnListOfLoans() throws Exception {
         List<Loan> loans = List.of(createLoan(), createLoan(), createLoan());
-        when(loanService.getAllLoans()).thenReturn(loans);
+        List<LoanResponse> loanResponseList = loans.stream().map(this::mapToLoanResponse).toList();
+        when(loanService.getAllLoans()).thenReturn(loanResponseList);
         mockMvc.perform(get("/loans")).andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -165,7 +167,8 @@ public class LoanControllerTest {
     @Test
     public void shouldReturnUserLoans() throws Exception {
         List<Loan> loans = List.of(createLoan(), createLoan(), createLoan());
-        when(loanService.getLoansByUserId(1L)).thenReturn(loans);
+        List<LoanResponse> loanResponseList = loans.stream().map(this::mapToLoanResponse).toList();
+        when(loanService.getLoansByUserId(1L)).thenReturn(loanResponseList);
         mockMvc.perform(get("/loans/user/1")).andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray())
                 .andExpect(jsonPath("$").isNotEmpty())
@@ -177,7 +180,7 @@ public class LoanControllerTest {
         Loan loan = createLoan();
         loan.setReturnedAt(LocalDate.now());
 
-        when(loanService.returnBook(1L)).thenReturn(loan);
+        when(loanService.returnBook(1L)).thenReturn(mapToLoanResponse(loan));
         mockMvc.perform(patch("/loans/1/return")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(1))
                 .andExpect(jsonPath("$.returnedAt").value(LocalDate.now().toString()));
@@ -218,5 +221,8 @@ public class LoanControllerTest {
         loan.setBorrowedAt(LocalDate.now());
         loan.setDueDate(LocalDate.now().plusDays(4));
         return loan;
+    }
+    private LoanResponse mapToLoanResponse(Loan loan) {
+        return new LoanResponse(loan.getId(), loan.getUser().getId(), loan.getBook().getId(), loan.getBorrowedAt(), loan.getDueDate(), loan.getReturnedAt());
     }
 }

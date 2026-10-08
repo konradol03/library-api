@@ -1,48 +1,27 @@
-package pl.konradoldakowski.libraryapi.entity;
+package pl.konradoldakowski.libraryapi.dto;
 
+import pl.konradoldakowski.libraryapi.entity.Role;
 
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
+public class UserResponse {
 
-@Entity
-@Table(name = "users")
-public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     private String firstName;
 
-    @NotBlank
     private String lastName;
 
-    @Column(nullable = false, unique = true)
-    @Email
-    @NotBlank
     private String email;
 
-    @Pattern(regexp = "\\d{9}")
     private String phoneNumber;
 
-    @Column(nullable = false)
-    private String password;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private Role role;
 
-    public User() {}
-
-    public User(String firstName, String lastName, String email, String phoneNumber, String password, Role role) {
+    public UserResponse(Long id, String firstName, String lastName, String email, String phoneNumber, Role role) {
+        this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phoneNumber = phoneNumber;
-        this.password = password;
         this.role = role;
     }
 
@@ -92,13 +71,5 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 }

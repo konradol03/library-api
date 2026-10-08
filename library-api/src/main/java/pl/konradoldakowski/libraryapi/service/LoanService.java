@@ -2,6 +2,7 @@ package pl.konradoldakowski.libraryapi.service;
 
 import org.springframework.stereotype.Service;
 import pl.konradoldakowski.libraryapi.dto.CreateLoanRequest;
+import pl.konradoldakowski.libraryapi.dto.LoanResponse;
 import pl.konradoldakowski.libraryapi.entity.Book;
 import pl.konradoldakowski.libraryapi.entity.Loan;
 import pl.konradoldakowski.libraryapi.entity.User;
@@ -26,7 +27,7 @@ public class LoanService {
         this.bookRepository = bookRepository;
     }
 
-    public Loan createLoan(CreateLoanRequest request) {
+    public LoanResponse createLoan(CreateLoanRequest request) {
         User user = userRepository.findById(request.getUserId()).orElseThrow(() -> new UserNotFoundException("User not found"));
 
         Book book = bookRepository.findById(request.getBookId()).orElseThrow(() -> new BookNotFoundException("Book not found"));
@@ -43,27 +44,36 @@ public class LoanService {
         loan.setBorrowedAt(borrowedAt);
         loan.setDueDate(borrowedAt.plusDays(request.getDays()));
 
-        return loanRepository.save(loan);
+        Loan savedLoan = loanRepository.save(loan);
+        return mapToLoanResponse(savedLoan);
     }
-    public Loan getLoanById(Long id) {
-        return loanRepository.findById(id).orElseThrow(() -> new LoanNotFoundException("Loan with id: "+id + " not found"));
+    public LoanResponse getLoanById(Long id) {
+        Loan loan = loanRepository.findById(id).orElseThrow(() -> new LoanNotFoundException("Loan with id: " + id + " not found"));
+        return mapToLoanResponse(loan);
     }
-    public List<Loan> getAllLoans() {
+    public List<LoanResponse> getAllLoans() {
         Iterable<Loan> allLoans = loanRepository.findAll();
-        return StreamSupport.stream(allLoans.spliterator(), false).toList();
+        List<Loan> loans = StreamSupport.stream(allLoans.spliterator(), false).toList();
+        return loans.stream().map(this::mapToLoanResponse).toList();
     }
-    public Loan returnBook(Long LoanId){
-        Loan loan = loanRepository.findById(LoanId).orElseThrow(() -> new LoanNotFoundException("Loan with id: " + LoanId + " not found"));
+    public LoanResponse returnBook(Long loanId){
+        Loan loan = loanRepository.findById(loanId).orElseThrow(() -> new LoanNotFoundException("Loan with id: " + loanId + " not found"));
         if (loan.getReturnedAt() != null) {
             throw new BookAlreadyReturnedException("Book already returned");
         }
         loan.setReturnedAt(LocalDate.now());
-        return loanRepository.save(loan);
+        Loan savedLoan = loanRepository.save(loan);
+        return mapToLoanResponse(savedLoan);
     }
-    public List<Loan> getLoansByUserId(Long userId) {
+    public List<LoanResponse> getLoansByUserId(Long userId) {
         if(!userRepository.existsById(userId)) {
             throw new UserNotFoundException("User with id: "+userId+" not found");
         }
-        return loanRepository.findByUserId(userId);
+        List<Loan> loansByUserId = loanRepository.findByUserId(userId);
+        return loansByUserId.stream().map(this::mapToLoanResponse).toList();
+    }
+
+    private LoanResponse mapToLoanResponse(Loan loan) {
+        return new LoanResponse(loan.getId(), loan.getUser().getId(), loan.getBook().getId(), loan.getBorrowedAt(), loan.getDueDate(), loan.getReturnedAt());
     }
 }
