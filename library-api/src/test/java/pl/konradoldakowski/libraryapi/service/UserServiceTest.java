@@ -103,9 +103,10 @@ public class UserServiceTest {
     @Test
     public void shouldDeleteUserIfExists() {
         User user = createUser();
+        user.setRole(Role.USER);
         UserRepository userRepository = mock(UserRepository.class);
         PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
-        when(userRepository.existsById(user.getId())).thenReturn(true);
+        when(userRepository.findById(user.getId())).thenReturn(Optional.of(user));
         UserService userService = new UserService(userRepository, passwordEncoder);
         userService.deleteUserById(user.getId());
         verify(userRepository, times(1)).deleteById(user.getId());
