@@ -171,6 +171,7 @@ public class LoanServiceTest {
 
         LoanResponse loan2 = loanService.returnBook(1L);
         assertEquals(LocalDate.now(),loan2.getReturnedAt());
+        verify(fineService, never()).createFine(any());
     }
     @Test
     public void shouldThrowExceptionWhenLoanDoesNotExist() {
@@ -224,6 +225,22 @@ public class LoanServiceTest {
         when(userRepository.existsById(1L)).thenReturn(false);
         LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         assertThrows(UserNotFoundException.class, () -> loanService.getLoansByUserId(1L));
+    }
+    @Test
+    public void shouldCreateFineWhenBookIsReturnedLate() {
+        Loan loan = createLoan();
+        loan.setDueDate(LocalDate.of(2026,10,1));
+
+        LoanRepository loanRepository = mock(LoanRepository.class);
+        BookRepository bookRepository = mock(BookRepository.class);
+        UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
+
+        when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
+        when(loanRepository.save(loan)).thenReturn(loan);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
+        LoanResponse loan2 = loanService.returnBook(1L);
+        verify(fineService).createFine(loan);
     }
     private static Book createBook() {
         Book book = new Book();
