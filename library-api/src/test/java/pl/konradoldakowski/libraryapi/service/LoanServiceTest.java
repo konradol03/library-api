@@ -40,13 +40,13 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
-
+        FineService fineService = mock(FineService.class);
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(loanRepository.existsByBookIdAndReturnedAtIsNull(1L)).thenReturn(false);
         when(loanRepository.save(any(Loan.class))).thenReturn(loan);
 
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         LoanResponse loan1 = loanService.createLoan(request);
 
         assertEquals(request.getBookId(), loan1.getBookId());
@@ -66,9 +66,10 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(userRepository.findById(1L)).thenReturn(Optional.empty());
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository, fineService);
         Assertions.assertThrows(UserNotFoundException.class, () -> loanService.createLoan(request));
     }
     @Test
@@ -83,10 +84,12 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(bookRepository.findById(1L)).thenReturn(Optional.empty());
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         Assertions.assertThrows(BookNotFoundException.class, () -> loanService.createLoan(request));
     }
     @Test
@@ -102,11 +105,12 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
         when(loanRepository.existsByBookIdAndReturnedAtIsNull(1L)).thenReturn(true);
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         Assertions.assertThrows(BookAlreadyLentException.class, () -> loanService.createLoan(request));
     }
     @Test
@@ -116,9 +120,10 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository, fineService);
 
         LoanResponse loanById = loanService.getLoanById(1L);
         assertEquals(loan.getId(),loanById.getId());
@@ -131,9 +136,10 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findById(1L)).thenReturn(Optional.empty());
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
 
         assertThrows(LoanNotFoundException.class, () -> loanService.getLoanById(1L));
     }
@@ -143,9 +149,10 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findAll()).thenReturn(loans);
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         List<LoanResponse> allLoans = loanService.getAllLoans();
         assertEquals(loans.get(0).getId(),allLoans.get(0).getId());
     }
@@ -156,10 +163,11 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
         when(loanRepository.save(loan)).thenReturn(loan);
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
 
         LoanResponse loan2 = loanService.returnBook(1L);
         assertEquals(LocalDate.now(),loan2.getReturnedAt());
@@ -169,10 +177,11 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findById(1L)).thenReturn(Optional.empty());
 
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         assertThrows(LoanNotFoundException.class, () -> loanService.returnBook(1L));
     }
     @Test
@@ -182,10 +191,11 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(loanRepository.findById(1L)).thenReturn(Optional.of(loan));
 
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         assertThrows(BookAlreadyReturnedException.class, () -> loanService.returnBook(1L));
     }
     @Test
@@ -194,10 +204,11 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
 
         when(userRepository.existsById(1L)).thenReturn(true);
         when(loanRepository.findByUserId(1L)).thenReturn(loans);
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         List<LoanResponse> loansByUserId = loanService.getLoansByUserId(1L);
         assertEquals(loans.size(), loansByUserId.size());
         assertEquals(loans.get(0).getBook().getId(),loansByUserId.get(0).getBookId());
@@ -208,8 +219,10 @@ public class LoanServiceTest {
         LoanRepository loanRepository = mock(LoanRepository.class);
         BookRepository bookRepository = mock(BookRepository.class);
         UserRepository userRepository = mock(UserRepository.class);
+        FineService fineService = mock(FineService.class);
+
         when(userRepository.existsById(1L)).thenReturn(false);
-        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository);
+        LoanService loanService = new LoanService(loanRepository, userRepository, bookRepository,fineService);
         assertThrows(UserNotFoundException.class, () -> loanService.getLoansByUserId(1L));
     }
     private static Book createBook() {

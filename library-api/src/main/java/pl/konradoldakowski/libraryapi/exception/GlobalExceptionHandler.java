@@ -68,4 +68,9 @@ public class GlobalExceptionHandler {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), exception.getMessage());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
     }
+    @ExceptionHandler(FineAlreadyExists.class)
+    public ResponseEntity<ErrorResponse> handleFineAlreadyExists(FineAlreadyExists fineAlreadyExistsException){
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT.value(), fineAlreadyExistsException.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponse);
+    }
 }

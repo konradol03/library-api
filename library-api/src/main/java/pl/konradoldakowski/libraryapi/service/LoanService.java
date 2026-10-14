@@ -1,5 +1,6 @@
 package pl.konradoldakowski.libraryapi.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import pl.konradoldakowski.libraryapi.dto.CreateLoanRequest;
 import pl.konradoldakowski.libraryapi.dto.LoanResponse;
@@ -20,11 +21,13 @@ public class LoanService {
     private final LoanRepository loanRepository;
     private final UserRepository userRepository;
     private final BookRepository bookRepository;
+    private final FineService fineService;
 
-    public LoanService(LoanRepository loanRepository, UserRepository userRepository, BookRepository bookRepository) {
+    public LoanService(LoanRepository loanRepository, UserRepository userRepository, BookRepository bookRepository, FineService fineService) {
         this.loanRepository = loanRepository;
         this.userRepository = userRepository;
         this.bookRepository = bookRepository;
+        this.fineService = fineService;
     }
 
     public LoanResponse createLoan(CreateLoanRequest request) {
@@ -56,12 +59,18 @@ public class LoanService {
         List<Loan> loans = StreamSupport.stream(allLoans.spliterator(), false).toList();
         return loans.stream().map(this::mapToLoanResponse).toList();
     }
+    @Transactional
     public LoanResponse returnBook(Long loanId){
         Loan loan = loanRepository.findById(loanId).orElseThrow(() -> new LoanNotFoundException("Loan with id: " + loanId + " not found"));
         if (loan.getReturnedAt() != null) {
             throw new BookAlreadyReturnedException("Book already returned");
         }
         loan.setReturnedAt(LocalDate.now());
+
+        if(loan.getReturnedAt().isAfter(loan.getDueDate())) {
+            fineService.createFine(loan);
+        }
+
         Loan savedLoan = loanRepository.save(loan);
         return mapToLoanResponse(savedLoan);
     }

@@ -43,6 +43,14 @@ public class Fine {
     public Fine() {
     }
 
+    public Fine(Loan loan, User user, BigDecimal baseAmount, BigDecimal interestRate, LocalDate createdAt) {
+        this.loan = loan;
+        this.user = user;
+        this.baseAmount = baseAmount;
+        this.interestRate = interestRate;
+        this.createdAt = createdAt;
+    }
+
     public Long getId() {
         return id;
     }
